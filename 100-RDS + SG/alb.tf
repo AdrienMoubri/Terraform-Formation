@@ -5,7 +5,7 @@ resource "aws_lb" "alb_ec2" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.sg_alb.id]
-  subnets            = toset(data.aws_subnet_ids.subnets_internal.ids)
+  subnets            = toset(data.aws_subnet_ids.subnets_public.ids)
 
   tags = {
     Name = "alb_${var.env}_${var.appname}_ec2"

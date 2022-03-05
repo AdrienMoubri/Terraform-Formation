@@ -24,13 +24,18 @@ data "aws_vpc" "vpc" {
 
 # data.aws_subnets.internal_subnets bien pourri, car ça ne crée par de set mais, des listes !!!
 # data.aws_subnets.internal_subnets
+data "aws_subnet_ids" "public_subnets" {
+  vpc_id = var.vpc_id
+  tags = {
+      Name = "*public*"
+  }
+}
 data "aws_subnet_ids" "internal_subnets" {
   vpc_id = var.vpc_id
   tags = {
       Name = "*internal*"
   }
 }
-## other method of doing as above
 # data.aws_subnet_ids.dev_external_subnets
 data "aws_subnet_ids" "dev_external_subnets" {
   vpc_id = var.vpc_id

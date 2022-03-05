@@ -16,6 +16,6 @@ resource "aws_instance" "ec2_external_mysql_accessor" {
   vpc_security_group_ids = [aws_security_group.sg_ec2.id]
   depends_on    = [aws_security_group.sg_ec2]
   tags = {
-    Name= "ec2_${var.env}_internal_${var.appname}"
+    Name= "ec2_${var.env}_external_${var.appname}"
   }
 }

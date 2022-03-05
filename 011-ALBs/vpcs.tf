@@ -5,9 +5,9 @@ terraform {
       version = "~> 3.27"
     }
   }
-
   required_version = ">= 0.14.9"
 }
+
 provider "aws" {
   profile = "default"
   region  = "eu-west-3"
@@ -34,11 +34,11 @@ data "aws_vpc" "vpc" {
 }
 
 # Nomenclature Nommage : {tool}_{vpc}_{subnet}_{appname}_{utilite}
-# data.aws_subnets.internal_subnets
-data "aws_subnet_ids" "subnets_internal" {
+# data.aws_subnets.public_subnets
+data "aws_subnet_ids" "subnets_public" {
   vpc_id = var.vpc_id
   tags = {
-      Name = "*internal*"
+      Name = "*public*"
   }
 }
 ## other method of doing as above
@@ -47,14 +47,5 @@ data "aws_subnet_ids" "subnets_external" {
   vpc_id = var.vpc_id
   tags = {
       Name = "*external*"
-  }
-}
-# Nomenclature Nommage : {tool}_{vpc}_{subnet}_{appname}_{utilite}
-# aws_db_subnet_group.db_subnet_group_vpc_internal_sub
-resource "aws_db_subnet_group" "subnetgroup_internal_rds" {
-  name       = "main"
-  subnet_ids = toset(data.aws_subnet_ids.subnets_internal.ids)
-  tags = {
-    Name = "MySql Dev db subnetGroup"
   }
 }
