@@ -149,7 +149,7 @@ resource "aws_route" "route-dev-public" {
   gateway_id                  = aws_internet_gateway.gatway_dev.id
 }
 
-resource "aws_route" "route-dev-public" {
+resource "aws_route" "route-rec-public" {
   route_table_id              = aws_vpc.vpc_rec.default_route_table_id
   destination_ipv6_cidr_block = "::/0"
   destination_cidr_block      = "0.0.0.0/0"

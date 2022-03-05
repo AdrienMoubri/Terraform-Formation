@@ -21,7 +21,7 @@ variable "vpc_name" {
   type = string
 }
 
-variable "ec2_ami" {
+variable "ami_ec2" {
   type = string
 }
 
@@ -38,7 +38,7 @@ data "aws_subnet_ids" "external_subnets" {
 }
 
 resource "aws_instance" "ec2_on_vpc_external_sub" {
-  ami           = var.ec2_ami
+  ami           = var.ami_ec2
   instance_type = "t2.micro"
   for_each = toset(data.aws_subnet_ids.external_subnets.ids)
   subnet_id     = each.value

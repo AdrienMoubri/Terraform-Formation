@@ -8,7 +8,7 @@ variable "ami_ec2" {
   sensitive   = true
 }
 
-resource "aws_instance" "ec2_external_mysql_accessor" {
+resource "aws_instance" "ec2_external" {
   ami           = var.ami_ec2
   instance_type = "t2.micro"
   for_each = toset(data.aws_subnet_ids.subnets_external.ids)

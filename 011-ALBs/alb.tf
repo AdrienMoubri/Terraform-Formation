@@ -22,7 +22,7 @@ resource "aws_lb_target_group" "alb_tgroup_ec2" {
 resource "aws_lb_target_group_attachment" "alb_tg_attach_ec2" {
   depends_on        = [aws_lb_target_group.alb_tgroup_ec2]
   target_group_arn  = aws_lb_target_group.alb_tgroup_ec2.arn
-  for_each          = aws_instance.ec2_external_mysql_accessor
+  for_each          = aws_instance.ec2_external
   target_id         = each.value.id
   port              = 80
 }

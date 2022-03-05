@@ -8,6 +8,7 @@ variable "ami_ec2" {
   sensitive   = true
 }
 
+
 resource "aws_instance" "ec2_external_mysql_accessor" {
   ami           = var.ami_ec2
   instance_type = "t2.micro"
@@ -19,3 +20,4 @@ resource "aws_instance" "ec2_external_mysql_accessor" {
     Name= "ec2_${var.env}_internal_${var.appname}"
   }
 }
+
