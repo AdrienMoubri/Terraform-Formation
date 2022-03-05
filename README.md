@@ -268,6 +268,10 @@ copy 010 directory as 011
 
 create a new file alb.tf
 lot of things to do !
+what we want to do is to add an alb on the public subnets like we did with the internal one
+
+add the datas list the public subnets
+
 I) create the Alb 
 ```
 resource "aws_lb" "alb_ec2" {
@@ -307,50 +311,144 @@ resource "aws_lb_target_group_attachment" "alb_tg_attach_ec2" {
 
 
 III) Security Groups
-a) ALB ingress
+a)create a security group as follow for the Alb and one for the Ec2
 ```
+resource "aws_security_group" "sg_alb" {
+  name          = "sg_${var.env}_${var.appname}_alb"
+  vpc_id = data.aws_vpc.vpc.id
+  description   = "Security group for ALB test Terraforms"
+  tags = {
+    Name        = "sg_${var.env}_${var.appname}_alb"
+  }
+}
 ```
-b) Alb Egress
+1) ALB ingress port 80
 ```
+resource "aws_security_group_rule" "sgrule__httpalb" {
+  type                      = "ingress"
+  from_port                 = 80
+  to_port                   = 80
+  protocol                  = "TCP"
+  cidr_blocks               = ["0.0.0.0/0"]
+  security_group_id         = aws_security_group.sg_alb.id
+}
 ```
-c) Ec2 Ingress
+2) Alb Egress
+same thing for Egress
 ```
+resource "aws_security_group_rule" "sgrule_alb_egress_httpalb" {
+  type                      = "egress"
+  from_port                 = 80
+  to_port                   = 80
+  protocol                  = "TCP"
+  security_group_id         = aws_security_group.sg_alb.id
+  cidr_blocks               = [data.aws_vpc.vpc.cidr_block]
+}
+
 ```
 
+Take a step back and `terraform apply`. 
+You can alway test your setup and assure yourself that what you are building correspong to your design with the aws console.
+
+b) Ec2 
+now create an security group for the ec2
+
+don't forget Ingress rules for port 80.
 
 
-terraform init
-
-terraform apply -var-file vpc.tfvars
-
-  
-  
-  
-  
+apply and destroy !
 
 ### 100 : RDS
+copy `011` directory as `100` directory
+
+Here we want to create our db in the safest subnets the `private` one 
+
+so add in the datas list the private subnets like we did with the internal and the external
+
+For Rds we need to define an [db_subnet_goup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_subnet_group) : 
+in [Rds](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_instance) we will use Mysql 8.0 as it is a free tier eligable type.
+
 
 I) Create RDS
-a) define Rds Password in file
+a) define Rds Password in the var file
 ```
+db_password = "helloWorld"
 ```
-b) get variable as protected
+
+b) create a file `rds.tf`
+add the variable db_password. Here we will also add the sensitive option. 
+
 ```
+variable "db_password" {
+  description = "RDS root user password"
+  type        = string
+  sensitive   = true #this will assure terraform don't save this variable in a file
+}
 ```
 c) vpc subnet Groups
+go to the vpc.tf file and add
 ```
+resource "aws_db_subnet_group" "subnetgroup_internal_rds" {
+  name       = "main"
+  subnet_ids = toset(data.aws_subnet_ids.subnets_internal.ids)
+  tags = {
+    Name = "MySql Dev db subnetGroup"
+  }
+}
+
 ```
-d) RDS file
-```
-```
+
 II) security Groups
-1) RDS Ingress
+
+1) Sg RDS
 ```
+resource "aws_security_group" "sg_rds" {
+  name          = "sg_${var.env}_${var.appname}_rds"
+  vpc_id = data.aws_vpc.vpc.id
+  description   = "Security group for RDS test Terraforms"
+  tags = {
+    Name        = "sg_${var.env}_${var.appname}_rds"
+  }
+}
+```
+
+Ingress rule allow EC2 access to our RDS Mysql instance
+```
+resource "aws_security_group_rule" "sgrule_mysql_rds" {
+  type                      = "ingress"
+  from_port                 = 3306
+  to_port                   = 3306
+  protocol                  = "TCP"
+  source_security_group_id  = aws_security_group.sg_ec2.id
+  security_group_id         = aws_security_group.sg_rds.id
+}
+```
+
+2) Rds config
+go back to rds.tf
+
+and then add our Rds config 
+```
+resource "aws_db_instance" "rds_internal" {
+  identifier             = "rds-${var.env}-internal-${var.appname}"
+  instance_class         = "db.t3.micro"
+  allocated_storage      = 5
+  engine                 = "mysql"
+  engine_version         = "8.0"
+  username               = "admin"
+  password               = var.db_password
+  db_subnet_group_name   = aws_db_subnet_group.subnetgroup_internal_rds.name
+  vpc_security_group_ids = [aws_security_group.sg_rds.id]
+  publicly_accessible    = false
+  skip_final_snapshot    = true
+  tags = {
+    Name= "rds_${var.env}_internal_${var.appname}"
+  }
+}
 ```
 
 terraform init
-
-terraform apply -var-file vpc.tfvars
+terraform apply -var-file var_dev.tfvars
 
 # Going Further
 
