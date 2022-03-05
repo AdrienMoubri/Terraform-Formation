@@ -15,10 +15,10 @@ provider "aws" {
 
 
 resource "aws_instance" "my_first_terraform_ec2" {
-  ami = "ami-0d49cec198762b78c"
+  ami = "ami-02f89a178c735778a"
   instance_type          = "t2.micro"
   tags = {
-    Application = "TestTerraforms"
+    Name = "first_ec2_with_terraforms"
   }
 }
 

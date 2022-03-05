@@ -20,14 +20,6 @@ resource "aws_security_group_rule" "sgrule__httpalb" {
   security_group_id         = aws_security_group.sg_alb.id
 }
 
-resource "aws_security_group_rule" "sgrule__https_alb" {
-  type                      = "ingress"
-  from_port                 = 443
-  to_port                   = 443
-  protocol                  = "TCP"
-  cidr_blocks               = ["0.0.0.0/0"]
-  security_group_id         = aws_security_group.sg_alb.id
-}
 ## Egress
 resource "aws_security_group_rule" "sgrule_alb_egress_httpalb" {
   type                      = "egress"

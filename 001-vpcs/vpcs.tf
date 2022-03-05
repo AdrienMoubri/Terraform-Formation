@@ -26,22 +26,6 @@ resource "aws_vpc" "vpc_rec" {
   }
 }
 
-# création Internet Gateway
-resource "aws_internet_gateway" "gatway_dev" {
-  vpc_id = aws_vpc.vpc_dev.id
-  tags = {
-    Name = "gatway_dev"
-  }
-}
-
-resource "aws_internet_gateway" "gatway_rec" {
-  vpc_id = aws_vpc.vpc_rec.id
-
-  tags = {
-    Name = "gatway_rec"
-  }
-}
-
 # Création Subnets
 resource "aws_subnet" "subnet_dev_public_a" {
   vpc_id            = aws_vpc.vpc_dev.id
@@ -142,6 +126,24 @@ resource "aws_subnet" "subnet_rec_external_b" {
   }
 }
 
+
+# création Internet Gateway
+resource "aws_internet_gateway" "gatway_dev" {
+  vpc_id = aws_vpc.vpc_dev.id
+  tags = {
+    Name = "gatway_dev"
+  }
+}
+
+resource "aws_internet_gateway" "gatway_rec" {
+  vpc_id = aws_vpc.vpc_rec.id
+
+  tags = {
+    Name = "gatway_rec"
+  }
+}
+
+# create route
 resource "aws_route" "route-dev-public" {
   route_table_id              = aws_vpc.vpc_dev.default_route_table_id
   destination_ipv6_cidr_block = "::/0"

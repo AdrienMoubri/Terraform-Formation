@@ -25,6 +25,12 @@ variable "ami_ec2" {
   type = string
 }
 
+variable "appname" {
+  description = "nom de l'application"
+  type        = string
+  sensitive   = true
+}
+
 data "aws_vpc" "vpc" {
   id = var.vpc_id
 }
@@ -37,12 +43,12 @@ data "aws_subnet_ids" "external_subnets" {
   }
 }
 
-resource "aws_instance" "ec2_on_vpc_external_sub" {
+resource "aws_instance" "ec2_external" {
   ami           = var.ami_ec2
   instance_type = "t2.micro"
   for_each = toset(data.aws_subnet_ids.external_subnets.ids)
   subnet_id     = each.value
   tags = {
-    Name= "ec2_on_${var.vpc_name}_vpc_external_sub"
+    Name= "ec2_${var.vpc_name}_external_${appname}"
   }
 }
