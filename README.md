@@ -86,7 +86,7 @@ terraform apply #apply the planned changes if there are any
 
 
 ### 000 : create a simple ec2
-[![N|Solid](assets/000-EC2.png)]
+![N|Solid](assets/000-EC2.png)
 Create a new directory name `000`
 Inside the `000` directory, create a file named `ec2.tf` with the configuration of the aws provider.
 Open the aws console. Select the region you've configured in the provider region.
@@ -116,7 +116,7 @@ terraform apply #apply the planned changes if there are any
 Go back to your aws console your ec2 instance is now running. 
 
 ### 001 : create and configure vpcs
-[![N|Solid](assets/001-VPC.png)]
+![N|Solid](assets/001-VPC.png)
 Start by creating a new directory and new file name `vpc.tf`
 VPC can be tricky to configure we will follow the [Terraform VPC documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc)
 
@@ -124,15 +124,72 @@ Let's start by creating the VPC :
 
 
 ```
+resource "aws_vpc" "vpc_dev" {
+  cidr_block = "10.16.0.0/16"
+  tags = {
+    Name = "vpc_dev"
+  }
+```
+Find the good Ip Ranges to be able to separate the Vpc in 6 subnets (3 levels * 2 regions)
+my Vpc will look like this :  ![N|Solid](assets/VPC_map.png)
 
+public 
+external
+internal
+
+Then the Subnets turn !  <br>
+each subnnet will be define as follow
+```
+resource "aws_subnet" "subnet_dev_public_a" {
+  vpc_id            = aws_vpc.vpc_dev.id
+  cidr_block        = "10.16.12.0/24"
+  availability_zone = "eu-west-3a"
+  tags = {
+    Name = "subnet_dev_public_a"
+  }
+}
+```
+create each subnet then let's configure the gateway on for each vpc you create
+ 
+```
+resource "aws_internet_gateway" "gatway_dev" {
+  vpc_id = aws_vpc.vpc_dev.id
+  tags = {
+    Name = "gatway_dev"
+  }
+}
 ```
 
 
-Attention trouver les bonnes range d'adresse pour les subnets
+then the routes. One for each Gateway. (We are gonna use the default route table here)
+```
+resource "aws_route" "route-dev-public" {
+  route_table_id              = aws_vpc.vpc_dev.default_route_table_id
+  destination_ipv6_cidr_block = "::/0"
+  destination_cidr_block      = "0.0.0.0/0"
+  gateway_id                  = aws_internet_gateway.gatway_dev.id
+}
+```
 
-Parler des zones d'avalability
+We can add the following code to be notfied of the vpc ids once they are created : 
+```
+output "vpc_ids" {
+  value = {
+    dev = aws_vpc.vpc_dev.id
+    # add other infos you want here 
+    # rec = aws_vpc.vpc_rec.id
+  }
+  description = "created vpcs ids"
+  sensitive = false
+}
 
-  
+```
+then Enjoy !!
+```sh
+terraform init #initialise the directory (download all verify providers configuration)
+terraform plan #show the planned changes.
+terraform apply 
+```
 
 ### 010 : create an ec2 inside a vpc
 
