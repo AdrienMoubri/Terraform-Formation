@@ -193,32 +193,160 @@ terraform apply
 
 ### 010 : create an ec2 inside a vpc
 
- 
+create directory `010`
+create file `var_dev.tfvars`
+```
+## vpc dev
+vpc_id = "YOUR_VPC_ID"
+vpc_name = "dev"
+ami_ec2 = "ami-0f3ad5207958726df" #Your AMI Id
+```
+create var file for each vpc you created here i use it for my separation of each environment
+
+create `ec2.tf` file 
+
+add provider 
+
+then add our varibles so terraform can find them !  
+```
+variable "vpc_id" {
+  type = string
+}
+
+variable "vpc_name" {
+  type = string
+}
+
+variable "ami_ec2" {
+  type = string
+}
+
+```
+data can be used to find more info about an existing state : 
+here we are gonna extract the subnets of an vpc.
+```
+data "aws_vpc" "vpc" {
+  id = var.vpc_id
+}
+
+data "aws_subnet_ids" "external_subnets" {
+  vpc_id = var.vpc_id
+  tags = {
+      Name = "*external*" #Filter of all subnet vpc by their tagName conatining external
+  }
+}
+```
+
+Then configure the EC2 : 
+
+```
+resource "aws_instance" "ec2_external" {
+  ami           = var.ami_ec2 #usage of variable for the ami
+  instance_type = "t2.micro" #we could have put a variable here also so the dev and rec could have a diffrent instance type
+  for_each = toset(data.aws_subnet_ids.external_subnets.ids) #creation of instance for each subnet we found
+  subnet_id     = each.value
+  tags = {
+    Name= "ec2_${var.vpc_name}_external"  #Concatenation of variable inside the name of our instance so we can find it later 
+  }
+}
+
+```
+
+
+```
 terraform init
+terraform plan -var-file var_dev.tfvars  #we add the variable file for environment definition
+terraform apply -var-file var_dev.tfvars 
+```
+
+once created and working don't forget to terraform destroy
+  
+  
+
+### 011 : ALBS !! 
+copy 010 directory as 011
+
+create a new file alb.tf
+lot of things to do !
+I) create the Alb 
+```
+resource "aws_lb" "alb_ec2" {
+  name               = "alb-${var.env}-${var.appname}-ec2"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.sg_alb.id]
+  subnets            = toset(data.aws_subnet_ids.subnets_public.ids)
+
+  tags = {
+    Name = "alb_${var.env}_${var.appname}_ec2"
+  }
+}
+```
+
+II)  create Target Groups 
+a) target group
+```
+resource "aws_lb_target_group" "alb_tgroup_ec2" {
+  name     = "tg-${var.env}-${var.appname}-ec2"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = var.vpc_id
+}
+
+```
+b) attach target group to ec2
+```
+resource "aws_lb_target_group_attachment" "alb_tg_attach_ec2" {
+  depends_on        = [aws_lb_target_group.alb_tgroup_ec2]
+  target_group_arn  = aws_lb_target_group.alb_tgroup_ec2.arn
+  for_each          = aws_instance.ec2_external
+  target_id         = each.value.id
+  port              = 80
+}
+```
 
 
+III) Security Groups
+a) ALB ingress
+```
+```
+b) Alb Egress
+```
+```
+c) Ec2 Ingress
+```
+```
+
+
+
+terraform init
 
 terraform apply -var-file vpc.tfvars
 
   
   
-
-### 011 : create
-
-  
-
-terraform init
-
-terraform apply -var-file vpc.tfvars
-
-  
-  
   
   
 
-### 100 : create
+### 100 : RDS
 
-  
+I) Create RDS
+a) define Rds Password in file
+```
+```
+b) get variable as protected
+```
+```
+c) vpc subnet Groups
+```
+```
+d) RDS file
+```
+```
+II) security Groups
+1) RDS Ingress
+```
+```
 
 terraform init
 
