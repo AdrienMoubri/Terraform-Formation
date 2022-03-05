@@ -48,13 +48,26 @@ terraform apply #apply the planned changes
 ```
 [Documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
 
-### 1 : create all vpc and subnets 
+### 000 : create a simple ec2 
 [EC2 documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance)
 Attention trouver les bonnes range d'adresse pour les subnets
 Parler des zones d'avalability
 
-### 2 : create an ec2 inside a specific vpc and subnet
+### 001 : create vpcs
 [EC2 documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance)
 Image Attention trouver la bonne dans la console aws
 utiliser le bon Id d'ami pour avoir apache2.
 ajouter la bonne zone de disponibilité
+
+### 010 : create an ec2 inside a vpc
+
+terraform init
+terraform apply -var-file vpc.tfvars
+
+
+### 011 : create 
+
+terraform init
+terraform apply -var-file vpc.tfvars
+
+
